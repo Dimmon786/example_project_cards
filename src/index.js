@@ -8,13 +8,14 @@ const { div, button, p, h1, table, tbody, th, td, tr, input, label, textarea } =
 // A combination of Tailwind classes which represent a (more or less nice) button style
 const btnStyle = "bg-green-600 text-white py-1 px-3 rounded hover:bg-green-700 transition-colors ring-offset-1 focus:ring-green-700";
 const btnStyle2 = "bg-red-600 text-white py-1 px-3 rounded hover:bg-red-700 transition-colors ring-offset-1 focus:ring-red-700";
-const cardStyle = "bg-pink-300 p-3 m-3";
+const cardStyle = "bg-pink-300 p-3 m-3 flex flex-col";
 
 // Messages which can be used to update the model
 const MSGS = {
   CARDS: "CARDS",
   ADD: "ADD",
   DELETE: "DELETE",
+  ANSWER: "ANSWER",
 };
 
 // View function which represents the UI as HTML-tag functions
@@ -24,22 +25,19 @@ function view(dispatch, model) {
     input({
       id: "cards",
       className: "shadow appearance-none border rounded w-full py-2 px-3 text-gray-700",
-    }),
+    }, "question"),
+    input({
+      id: "cards",
+      className: "shadow appearance-none border rounded w-full py-2 px-3 text-gray-700",
+    }, "answer"),
     button({
       className: btnStyle,
       onclick: () => dispatch({ type: MSGS.ADD, payload: { cards: document.getElementById("cards").value } })
     }, "ADD"),
     div({ className: "" }, [ //model.cItem.map(item) =>
-      label({ className: "text-gray-700 text-sm font-bold mb-2" }, "Card Name"),
+      label({ className: "text-gray-700 text-sm font-bold mb-2 flex flex-col" }, "Card Name"),
       //div [({ className: ""}, model.cards)],
-      textarea({ className: "" }, "item.answer.toString"),
     ]),
-    button({
-      className: btnStyle2,
-      onclick: () =>
-        dispatch({ type: MSGS.DELETE, payload: item.id }),
-    },
-      "Delete"),
     div({ className: "" }, displayCards(model.cards, dispatch)),
   ]);
 }
@@ -60,6 +58,19 @@ function update(msg, model) {
       const idDel = msg.payload;
       const filteredItems = model.cards.filter((card) => card.id !== idDel);
       return { ...model, cards: filteredItems };
+
+      case MSGS.ANSWER:
+        const cardShow = msg.payload;
+        const mapedItems = model.cards.map((card) => {
+          console.log("trueHidden", card);
+          if(card.id === cardShow.id) {
+            console.log("anotherHidden", card);
+            return {...card, displayAnswer: cardShow};
+          }
+          return card;
+        });
+        console.log("hiden",mapedItems);
+        return { ...model, cards: mapedItems };
     default:
       return model;
   }
@@ -86,7 +97,7 @@ const initModel = {
     {
       id: 1,
       question: "Blood for the Bloodgod",
-      answer: "Milk for the Khorne flakes!"
+      answer: "Milk for the Khorne flakes!",
     },
     {
       id: 2,
@@ -123,7 +134,6 @@ function displayCards(cards, dispatch) {
   /*  essen("Spaghetti");
    essen("Spaghetti");
    essen("Spaghetti"); */
-  console.log(cards[1].question);
   const maped = cards.map(card => {
     console.log(card.question);
     return div({ className: cardStyle }, [card.question, button({
@@ -131,7 +141,14 @@ function displayCards(cards, dispatch) {
       onclick: () =>
         dispatch({ type: MSGS.DELETE, payload: card.id }),
     },
-      "Delete")]);
+      "Delete"),
+    card.displayAnswer, button({
+      className: "", 
+      onclick: () =>
+      dispatch({ type: MSGS.ANSWER, payload: card}),
+    },
+    "Answer")
+  ]);
   })
   console.log(maped);
   return maped;
